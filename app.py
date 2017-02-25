@@ -5,10 +5,11 @@ import flask
 
 import skimage.io
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import time
-import io
+# import io
 import mockup
+from GUI_prep import *
 
 # TODO: Sessions persist accros tabs. so maybe do it somehow only within the tab
 # create userID in the index function in this python app
@@ -69,7 +70,8 @@ def classifyImage(imageID):
     imageHash = pairInts(session['sessionID'], int(imageID))
 
     img = skimage.io.imread(request.files['file'])
-    imgCropped = mockup.faceCrop(img)
+    # imgCropped = mockup.faceCrop(img)
+    imgCropped = GUI_prep(img)
 
     currentlyClassified[imageHash] = imgCropped #put in a list of all the found images
     freshImages.append(imageHash)
