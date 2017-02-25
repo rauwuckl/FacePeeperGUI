@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import re
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 allNames = ["hans", "peter", "deepike Padukone", "robert downey junior", "dietmar", "günther", "Opera"]
 
