@@ -23,32 +23,27 @@
     var globalActorList = [];
     var spinner = new Spinner(spinnWheelOpts);
 
-    //TODO make site with all the Actors
 
     $(document).ready(function(){
 
-
+        //set up the drag and drop zone
         var dropZone = document.getElementById('dropzone');
         dropZone.addEventListener('dragover', handleDragOver, false);
         dropZone.addEventListener('drop', handleFileSelect, false);
 
+        //set up the little pen button
         $(".icon#Edit").click(enterCorrectionMode);
+        //set up the send correction button
         $("#correction_selector button").click(sendCorrection);
 
-    // $("#actor_options").keyup(function(event){
-    // if(event.keyCode == 13){
-    //     sendCorrection();
-    // }
-    // });
 
-    // $('#actor_options').change(function() {
-    // var val = $("#actor_options option:selected").text();
-    // alert(val);
-    // });
-
+    // load the list of all our actors from the server
+    // put all of them in the options list that the user has to select from when 
+    // he wants to correct the classification
     dataList = document.getElementById("actors_list");
     $.get("api/actorList", function(actorList){
         globalActorList = actorList;
+        //save the list so we can later use it to check for correct input
          actorList.forEach(function(actor) {
             // Create a new <option> element.
             var option = document.createElement('option');
@@ -74,15 +69,16 @@ function sendCorrection(){
             $.post("/api/correctClassification/"+sessionStorage.currentImageId,
                 {newName: myNewName},
                 function(data,status){
-                    //alert("Data: " + data.message + "\nStatus: " + status);
                     if(status!="success"){
                         alert("We couldn't update the classifier: " + data.message + " status: "+ status)
                     }
                 });
+            // we display the info, but do not allow correction
             displayActorInfo(myNewName, false);
         }
         else{
             var inputfield = $("#correction_selector");
+            // wonderfull shaky animation for incorrect user input
             inputfield.animate({paddingLeft: "10px"}, 70);
             inputfield.animate({paddingLeft: "0px"}, 60);
             inputfield.animate({paddingLeft: "10px"}, 50);
@@ -95,9 +91,10 @@ function sendCorrection(){
     }
 
     function displayActorInfo(name, allow_edit){
+        '''displays name and info for a given actor. 
+        might be from server or from user correction'''
         $.get("/api/actorInfo/" + name,
                 function(data, status){
-                    //alert("Data: " + data.message + "\nStatus: " + status);
                     if(status=="success"){
                         $("#actor_text").text(data);
                     }
@@ -125,6 +122,7 @@ function sendCorrection(){
 
 
         var file = evt.dataTransfer.files[0];
+        //check if it is image
         if(null != file.type.match("image/*")){
             var target = document.getElementById('dropzone');
             document.getElementById('help_text').style.display= "none";
@@ -137,11 +135,6 @@ function sendCorrection(){
     }
 
     function uploadFile(file){
-        // var fileSelect = document.getElementById('file-select');
-        // console.log("blabla")
-        // console.log(fileSelect.files[0])
-        // var formdata = new FormData();
-        // formdata.append("file", fileSelect.files[0])
 
         var formdata = new FormData();
         formdata.append("file", file)
@@ -165,22 +158,26 @@ function sendCorrection(){
         };
 
         sessionStorage.currentImageId =new Date().getTime()%1000000
-        console.log(sessionStorage.currentImageId);
         xhttp.open("POST", "api/classifyImage/"+sessionStorage.currentImageId, true);
         xhttp.send(formdata);
         return false;
     }
 
     function processClassificationResult(answer){
-        // $("#result").text(answer.responseText)
+        // we classified an image. we have to do the following
+        // load the cropped preview face
         var imgSrc = "/api/getPreProcessedImg/" + sessionStorage.currentImageId;
+        // once it is loaded, we display it together with the actor info
         $("#preview_img").one("load", function(){displayClassificationResult(answer);});
         $("#preview_img").attr("src", imgSrc);
         $("#preview_img").show();
     }
 
     function displayClassificationResult(answer){
+        '''display a new server classification'''
         spinner.stop();
         var name = answer.label;
+        // we display the info and allow editing
         displayActorInfo(name, true)
     }
+

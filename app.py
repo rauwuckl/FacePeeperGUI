@@ -8,32 +8,28 @@ import numpy as np
 # import matplotlib.pyplot as plt
 import time
 import io
-import mockup
-from GUI_prep import *
-
-# TODO: Sessions persist accros tabs. so maybe do it somehow only within the tab
-# create userID in the index function in this python app
-# for each picture upload in the javascript create a pictureID, transfer this with
-# get to all the web api calls
-# in the webserver combine them to get a unique hash
+import backend.mockup as mockup
+from backend.GUI_prep import *
 
 async_mode = None
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '939fkj3kwlsk4958204kfjnkl39f9Ixne9l39((d'
 global cleanUpInterval 
-cleanUpInterval = 20 
+cleanUpInterval = 20 #minutes
 
 
 global currentlyClassified
-currentlyClassified = {}
+currentlyClassified = {} #dict of all image that are currently classified
+# they get deleted between cleanUpInterval or 2*cleanUpInterval minutes
 global nextToRemove, freshImages
 nextToRemove = []
 freshImages  = []
 
 def cleanupImageBase():
+    """deletes images that where uploaded at least x minutes ago"""
     global nextToRemove, freshImages, currentlyClassified, cleanUpTimer
-    print("next: {}, fresh: {}".format(nextToRemove, freshImages))
+
     for imageHash in nextToRemove:
         del currentlyClassified[imageHash]
         print("in the loop")
@@ -56,11 +52,14 @@ def index():
         print("made new sessionID")
         sessionID = int(time.time()*100%1000000)
         session['sessionID'] = sessionID
+    # if you visit the site for the first time, 
+    # you get an id so we know which images are yours
     return render_template('index.html')
 
 
 @app.route('/api/classifyImage/<imageID>', methods=['POST'])
 def classifyImage(imageID):
+    """classify and save the uploaded image"""
     if not 'sessionID' in session:
         answer = {'message': 'there is no request for this session'}
         resp = flask.jsonify(answer)
@@ -70,25 +69,28 @@ def classifyImage(imageID):
     imageHash = pairInts(session['sessionID'], int(imageID))
 
     img = skimage.io.imread(request.files['file'])
-    # imgCropped = mockup.faceCrop(img)
+
     imgCropped = GUI_prep(img)
     if(imgCropped is None):
         resp = flask.jsonify({'message': 'We could not detect exactly one face in your image'})
         resp.status_code = 400
         return resp
 
-    currentlyClassified[imageHash] = imgCropped #put in a list of all the found images
+    currentlyClassified[imageHash] = imgCropped 
+    # save the image so that we can retrain with it if the user corrects our prediction
     freshImages.append(imageHash)
+    # rember the hash, so that we can delete it if it is to old
 
     label = mockup.classifyImage(imgCropped)
+    # at the moment our classifier doesn't actually work, so it is mocked up
 
     answer = {'label': label}
-    #print("new Request id:{} , length of dict after:{}".format(sessionID, len(currentlyClassified)))
 
     return flask.jsonify(answer)
 
 @app.route('/api/correctClassification/<imageID>', methods=['POST'])
 def correctClassification(imageID):
+    """lets the user post a correct name for the image"""
     mistake = checkIfCorrectRequestedImage(imageID)
     if mistake is not None:
         print("no Request in correctClassification")
@@ -99,9 +101,12 @@ def correctClassification(imageID):
 
     newName = request.form["newName"]
 
+    # get the picture that he wants updated
     pic = currentlyClassified[imageHash]
+
+
+    # the backend retraining doesn't actually work
     mockup.updateClassification(pic, newName)
-    print("upadate sessionID: {}, length of dict: {}".format(sessionID, len(currentlyClassified)))
     return flask.jsonify({"message":"py says success"})
 
 
@@ -113,20 +118,14 @@ def getActorList():
 
 @app.route('/api/actorInfo/<name>')
 def actorInfoByName(name):
-    """given an actor name as specified by the getActorList give back info as json"""
+    """given an actor name as specified by the getActorList give back info as plain text"""
     return "We don't have any info text available for anyone."
-
-
-
-@app.route('/api/getPreProcessedImg/<id>/<timestamp>')
-def getImageTS(id, timestamp):
-    #nobody needs the timestamp its just there so the browser autoloads the new image
-    #probably a hack
-    time.sleep(0.2)
-    return getImage(id)
 
 @app.route('/api/getPreProcessedImg/<imageID>')
 def getImage(imageID):
+    """get image from the currently classified images, 
+    the server created session id plus the user created image id are used to identify it"""
+
     mistake = checkIfCorrectRequestedImage(imageID)
     if mistake is not None:
         return mistake
@@ -143,17 +142,12 @@ def getImage(imageID):
     #putting the reader at the begining of the file:
     picSaved.seek(0)
 
-    #############
-    # img = skimage.io.imread(picSaved)
-    # plt.ion()
-    # plt.imshow(img)
-    # plt.show()
-    # plt.pause(1)
     print('sending')
     return flask.send_file(picSaved, mimetype="image/jpeg", cache_timeout=0.1)
 
 
 def checkIfCorrectRequestedImage(imageID):
+    '''helper function to see that the image exists'''
     if not 'sessionID' in session:
         answer = {'message': 'there is no request for this session'}
         resp = flask.jsonify(answer)
