@@ -131,7 +131,6 @@ def getImage(imageID):
     if mistake is not None:
         return mistake
 
-    time.sleep(0.2)
 
     sessionID = session["sessionID"]
     imageHash = pairInts(sessionID, int(imageID))
