@@ -7,7 +7,7 @@ import skimage.io
 import numpy as np
 # import matplotlib.pyplot as plt
 import time
-# import io
+import io
 import mockup
 from GUI_prep import *
 
@@ -72,6 +72,10 @@ def classifyImage(imageID):
     img = skimage.io.imread(request.files['file'])
     # imgCropped = mockup.faceCrop(img)
     imgCropped = GUI_prep(img)
+    if(imgCropped is None):
+        resp = flask.jsonify({'message': 'We could not detect exactly one face in your image'})
+        resp.status_code = 400
+        return resp
 
     currentlyClassified[imageHash] = imgCropped #put in a list of all the found images
     freshImages.append(imageHash)
@@ -170,7 +174,7 @@ def checkIfCorrectRequestedImage(imageID):
 if __name__ == '__main__':
     print('in my file')
     cleanupImageBase()
-    Flask.run(app, debug=True)
+    Flask.run(app, debug=False)
     cleanUpTimer.cancel()
     print("ended gracefully")
 

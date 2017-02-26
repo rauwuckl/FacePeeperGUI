@@ -26,17 +26,18 @@ def GUI_prep(img):
 
 	# Set up classifier and detect images	
 	faceDec = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-	cvImg = cv2.imread(img)
+	cvImg = img # cv2.imread(img)
 	cvImgBW = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-	faceCoords = faceDec.detectMultiScale(cvImgBW, scaleFactor=1.3, minNeighbor=5,minSize=(60,60))
+	faceCoords = faceDec.detectMultiScale(cvImgBW, scaleFactor=1.3, minNeighbors=5,minSize=(60,60))
+	print("faceCoords: {}".format(faceCoords))
 
 	# Handle three scenarios
-	if faceCoords:
-		faceImgs = np.zeros([len(faceCoords),112,112,3])
-		for ind,(x,y,w,h) in enumerate(faceCoords):
-			face = img[y:y+h,x:x+w,:]
-			faceImgs[ind,:,:,:] = cv2.resize(face,(112,112,3))
-		return faceImgs
+	if len(faceCoords)==1:
+		#faceImgs = np.zeros([len(faceCoords),112,112,3])
+		#for ind,(x,y,w,h) in enumerate(faceCoords):
+		(x,y,w,h) = faceCoords[0]
+		face = img[y:y+h,x:x+w,:]
+		return cv2.resize(face,(112,112))
 	else:
 		return None
 

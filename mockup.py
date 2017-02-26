@@ -3,7 +3,6 @@ import random
 import re
 #import matplotlib.pyplot as plt
 
-allNames = ["hans", "peter", "deepike Padukone", "robert downey junior", "dietmar", "günther", "Opera"]
 
 def faceCrop(img):
  	return img[:112,:112,:]
@@ -38,10 +37,10 @@ def getActorList():
 
 def updateClassification(img, label):
 	print(label)
-	plt.ion()
-	plt.imshow(img)
-	plt.show()
-	plt.pause(1)
+	#plt.ion()
+	#plt.imshow(img)
+	#plt.show()
+	#plt.pause(1)
 
 
-	
+allNames = getActorList()

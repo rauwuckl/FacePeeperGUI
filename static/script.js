@@ -22,7 +22,6 @@
     };
     var globalActorList = [];
     var spinner = new Spinner(spinnWheelOpts);
-    var date = new Date()
 
     //TODO make site with all the Actors
 
@@ -153,14 +152,20 @@ function sendCorrection(){
                 let respObject = jQuery.parseJSON(this.responseText);
                 processClassificationResult(respObject);
             }
-            else if(this.readyState == 4 && this.status != 200){
-                alert("Classification Failed");
+            else if(this.readyState == 4 && this.status == 400){
+		var serverMessage = jQuery.parseJSON(this.responseText).message;
+                alert("The server could not classify your image: " + serverMessage);
                 location.reload();
             }
+            else if(this.readyState == 4){
+                alert("Unknown server error");
+                location.reload();
+	    }
+	
         };
 
+        sessionStorage.currentImageId =new Date().getTime()%1000000
         console.log(sessionStorage.currentImageId);
-        sessionStorage.currentImageId = date.getTime()%1000000
         xhttp.open("POST", "api/classifyImage/"+sessionStorage.currentImageId, true);
         xhttp.send(formdata);
         return false;
