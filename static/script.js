@@ -91,7 +91,7 @@ function sendCorrection(){
     }
 
     function displayActorInfo(name, allow_edit){
-        '''displays name and info for a given actor. might be from server or from user correction'''
+        /**displays name and info for a given actor. might be from server or from user correction*/
         $.get("/api/actorInfo/" + name,
                 function(data, status){
                     if(status=="success"){
@@ -173,7 +173,7 @@ function sendCorrection(){
     }
 
     function displayClassificationResult(answer){
-        '''display a new server classification'''
+        /**display a new server classification*/
         spinner.stop();
         var name = answer.label;
         // we display the info and allow editing
