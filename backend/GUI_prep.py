@@ -25,7 +25,7 @@ def GUI_prep(img):
 
 
 	# Set up classifier and detect images	
-	faceDec = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+	faceDec = cv2.CascadeClassifier('backend/haarcascade_frontalface_default.xml')
 	cvImg = img # cv2.imread(img)
 	cvImgBW = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 	faceCoords = faceDec.detectMultiScale(cvImgBW, scaleFactor=1.3, minNeighbors=5,minSize=(60,60))
