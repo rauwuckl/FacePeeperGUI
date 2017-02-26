@@ -32,7 +32,7 @@ def GUI_prep(img):
 	print("faceCoords: {}".format(faceCoords))
 
 	# Handle three scenarios
-	if len(faceCoords)==1:
+	if len(faceCoords)>=1:
 		#faceImgs = np.zeros([len(faceCoords),112,112,3])
 		#for ind,(x,y,w,h) in enumerate(faceCoords):
 		(x,y,w,h) = faceCoords[0]
